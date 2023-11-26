@@ -15,6 +15,33 @@
       <input required id='username' name='username' type='text' >
       <button type='submit'>Submit</button>
     </form>
+    <form id='exerciseSubmit' method='POST'>
+      <div>
+        <label for="_id">User id</label>
+        <input required id='_id' name='_id' type='text'>
+      </div>
+      <div>
+        <label for='description'>Description</label>
+        <input required id='description' name='description' type='text'>
+      </div>
+      <div>
+        <label for='duration'>Duration</label>
+        <input required id='duration' name='duration' type='text'>
+      </div>
+      <div>
+        <label for='date'>Date</label>
+        <input id='date' name='date' type='date'>
+      </div>
+      <button type='submit'>Submit</button>
+    </form>
+    <script>
+     const userId = document.getElementById('_id');
+     const form = document.getElementById('exerciseSubmit');
+
+     form.addEventListener('submit', (event) => {
+        form.action = `/api/${userId.value}/exercises`;
+     });
+    </script>
   </section>
 </main>
 </body>
