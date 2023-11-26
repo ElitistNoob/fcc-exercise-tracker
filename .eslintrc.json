@@ -10,6 +10,8 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-        "prettier/prettier": ["error"]
+        "prettier/prettier": ["error"],
+        "no-underscore-dangle": "off",
+        "comma-dangle": "off"
     }
 }
