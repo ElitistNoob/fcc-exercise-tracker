@@ -22,7 +22,6 @@ const userSchema = mongoose.Schema({
 const currentTime = new Date();
 
 const exerciseScheme = mongoose.Schema({
-  username: String,
   description: String,
   duration: Number,
   date: Date,
@@ -60,22 +59,20 @@ app.post('/api/:_id/exercises', async (req, res) => {
   const { _id, description, duration, date } = req.body;
 
   try {
-    const { username } = await User.findOne({ _id });
+    const user = await User.findOne({ _id });
 
     const exercise = await Exercise.create({
-      username,
       description,
       duration,
       date,
-      _id,
     });
 
     res.send({
-      username: exercise.username,
+      username: user.username,
+      _id: user._id,
       description: exercise.description,
       duration: exercise.duration,
       date: exercise?.date || currentTime.toUTCString().slice(0, 16),
-      _id: exercise._id,
     });
   } catch (err) {
     res.send({ error: 'invalid user Id' });
