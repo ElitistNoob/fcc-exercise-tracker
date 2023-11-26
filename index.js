@@ -67,6 +67,7 @@ app.post('/api/:_id/exercises', async (req, res) => {
       description,
       duration,
       date,
+      _id,
     });
 
     res.send({
