@@ -19,16 +19,25 @@ const userSchema = mongoose.Schema({
   username: String,
 });
 
+const currentTime = new Date();
+
+const exerciseScheme = mongoose.Schema({
+  username: String,
+  description: String,
+  duration: Number,
+  date: Date,
+});
+
 const User = mongoose.model('User', userSchema);
+const Exercise = mongoose.model('Exercise', exerciseScheme);
 
 app.get('/', (req, res) => {
   res.sendFile(BASE_URL);
 });
 
 app.post('/api/users', async (req, res) => {
-  await User.create({ username: req.body.username });
-  const userQuery = await User.findOne({ username: req.body.username });
-  const { username, _id } = userQuery;
+  const user = await User.create({ username: req.body.username });
+  const { username, _id } = user;
   res.send({ username, _id });
 });
 
@@ -37,6 +46,39 @@ app.get('/api/users', async (req, res) => {
   res.send(
     usersQuery.map((user) => ({ username: user.username, _id: user._id }))
   );
+});
+
+// To Delete Later On
+app.get('/api/delete', async (req, res) => {
+  await User.deleteMany();
+  await Exercise.deleteMany();
+
+  res.redirect('/');
+});
+
+app.post('/api/:_id/exercises', async (req, res) => {
+  const { _id, description, duration, date } = req.body;
+
+  try {
+    const { username } = await User.findOne({ _id });
+
+    const exercise = await Exercise.create({
+      username,
+      description,
+      duration,
+      date,
+    });
+
+    res.send({
+      username: exercise.username,
+      description: exercise.description,
+      duration: exercise.duration,
+      date: exercise?.date || currentTime.toUTCString().slice(0, 16),
+      _id: exercise._id,
+    });
+  } catch (err) {
+    res.send({ error: 'invalid user Id' });
+  }
 });
 
 app.listen(process.env.PORT || 3000);
