@@ -12,6 +12,7 @@
     "rules": {
         "prettier/prettier": ["error"],
         "no-underscore-dangle": "off",
-        "comma-dangle": "off"
+        "comma-dangle": "off",
+        "object-curly-newline": "off"
     }
 }
