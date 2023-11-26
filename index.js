@@ -32,4 +32,11 @@ app.post('/api/users', async (req, res) => {
   res.send({ username, _id });
 });
 
+app.get('/api/users', async (req, res) => {
+  const usersQuery = await User.find();
+  res.send(
+    usersQuery.map((user) => ({ username: user.username, _id: user._id }))
+  );
+});
+
 app.listen(process.env.PORT || 3000);
