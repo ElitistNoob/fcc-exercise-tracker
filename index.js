@@ -2,6 +2,7 @@ const mongoose = require('mongoose').default;
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { Schema, model } = require('mongoose');
 require('dotenv').config();
 
 const BASE_URL = `${__dirname}/views/index.html`;
@@ -15,20 +16,24 @@ app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const userSchema = mongoose.Schema({
+const userSchema = new Schema({
   username: String,
+  count: {
+    type: Number,
+    default: 0,
+  },
+  log: [
+    {
+      description: String,
+      duration: Number,
+      date: {
+        type: Date,
+        default: Date.now(),
+      },
+    },
+  ],
 });
-
-const currentTime = new Date();
-
-const exerciseScheme = mongoose.Schema({
-  description: String,
-  duration: Number,
-  date: Date,
-});
-
-const User = mongoose.model('User', userSchema);
-const Exercise = mongoose.model('Exercise', exerciseScheme);
+const User = model('User', userSchema);
 
 app.get('/', (req, res) => {
   res.sendFile(BASE_URL);
@@ -50,33 +55,54 @@ app.get('/api/users', async (req, res) => {
 // To Delete Later On
 app.get('/api/delete', async (req, res) => {
   await User.deleteMany();
-  await Exercise.deleteMany();
 
   res.redirect('/');
 });
 
 app.post('/api/:_id/exercises', async (req, res) => {
   const { _id, description, duration, date } = req.body;
+  const formatDate = new Date();
 
   try {
     const user = await User.findOne({ _id });
 
-    const exercise = await Exercise.create({
+    const exercise = {
       description,
       duration,
       date,
-    });
+    };
+
+    await user.log.push(exercise);
+    user.save();
 
     res.send({
       username: user.username,
       _id: user._id,
       description: exercise.description,
       duration: exercise.duration,
-      date: exercise?.date || currentTime.toUTCString().slice(0, 16),
+      date: formatDate.toUTCString(exercise.date).slice(0, 16),
     });
   } catch (err) {
     res.send({ error: 'invalid user Id' });
   }
+});
+
+app.get('/api/users/:_id/logs', async (req, res) => {
+  const { _id } = req.params;
+  const formatDate = new Date();
+
+  const user = await User.find({ _id });
+
+  res.send({
+    username: user[0].username,
+    _id: user[0]._id,
+    count: user[0].log.length,
+    log: user[0].log.map((i) => ({
+      description: i.description,
+      duration: i.duration,
+      date: formatDate.toUTCString(i.date).slice(0, 16),
+    })),
+  });
 });
 
 app.listen(process.env.PORT || 3000);
