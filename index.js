@@ -16,6 +16,13 @@ app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const formatDate = (date) => {
+  if (date) {
+    return new Date(date).toUTCString();
+  }
+  return new Date().toUTCString();
+};
+
 const userSchema = new Schema({
   username: String,
   count: {
@@ -26,10 +33,7 @@ const userSchema = new Schema({
     {
       description: String,
       duration: Number,
-      date: {
-        type: Date,
-        default: Date.now(),
-      },
+      date: Date,
     },
   ],
 });
@@ -61,7 +65,6 @@ app.get('/api/delete', async (req, res) => {
 
 app.post('/api/:_id/exercises', async (req, res) => {
   const { _id, description, duration, date } = req.body;
-  const formatDate = new Date();
 
   try {
     const user = await User.findOne({ _id });
@@ -80,7 +83,7 @@ app.post('/api/:_id/exercises', async (req, res) => {
       _id: user._id,
       description: exercise.description,
       duration: exercise.duration,
-      date: formatDate.toUTCString(exercise.date).slice(0, 16),
+      date: formatDate(exercise.date).slice(0, 16),
     });
   } catch (err) {
     res.send({ error: 'invalid user Id' });
@@ -89,7 +92,6 @@ app.post('/api/:_id/exercises', async (req, res) => {
 
 app.get('/api/users/:_id/logs', async (req, res) => {
   const { _id } = req.params;
-  const formatDate = new Date();
 
   const user = await User.find({ _id });
 
@@ -100,7 +102,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
     log: user[0].log.map((i) => ({
       description: i.description,
       duration: i.duration,
-      date: formatDate.toUTCString(i.date).slice(0, 16),
+      date: formatDate(i.date).slice(0, 16),
     })),
   });
 });
