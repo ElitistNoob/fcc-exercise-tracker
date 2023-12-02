@@ -63,7 +63,7 @@ app.get('/api/delete', async (req, res) => {
   res.redirect('/');
 });
 
-app.post('/api/:_id/exercises', async (req, res) => {
+app.post('/api/users/:_id/exercises', async (req, res) => {
   const { _id, description, duration, date } = req.body;
 
   try {
