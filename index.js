@@ -79,11 +79,11 @@ app.post('/api/:_id/exercises', async (req, res) => {
     user.save();
 
     res.send({
-      username: user.username,
       _id: user._id,
-      description: exercise.description,
-      duration: exercise.duration,
+      username: user.username,
       date: formatDate(exercise.date).slice(0, 16),
+      duration: exercise.duration,
+      description: exercise.description,
     });
   } catch (err) {
     res.send({ error: 'invalid user Id' });
@@ -96,8 +96,8 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   const user = await User.find({ _id });
 
   res.send({
-    username: user[0].username,
     _id: user[0]._id,
+    username: user[0].username,
     count: user[0].log.length,
     log: user[0].log.map((i) => ({
       description: i.description,
