@@ -16,11 +16,16 @@ app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const formatDate = (date) => {
-  if (date) {
-    return new Date(date).toUTCString();
+const formatDateToUTC = (date) => new Date(date).toUTCString().slice(0, 16);
+
+const filterLogs = (from, to, log) => {
+  const minDate = from ? new Date(from) : -Infinity;
+  const maxDate = to ? new Date(to) : Infinity;
+  const logDate = log.date;
+
+  if (logDate >= minDate && logDate <= maxDate) {
+    return log;
   }
-  return new Date().toUTCString();
 };
 
 const userSchema = new Schema({
@@ -63,6 +68,13 @@ app.get('/api/delete', async (req, res) => {
   res.redirect('/');
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.log[0].date) {
+    this.log[0].date = Date.now();
+  }
+  next();
+});
+
 app.post('/api/users/:_id/exercises', async (req, res) => {
   const { _id, description, duration, date } = req.body;
 
@@ -72,7 +84,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     const exercise = {
       description,
       duration,
-      date,
+      date: date || Date.now(),
     };
 
     await user.log.push(exercise);
@@ -81,7 +93,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     res.send({
       _id: user._id,
       username: user.username,
-      date: formatDate(exercise.date).slice(0, 16),
+      date: formatDateToUTC(exercise.date),
       duration: exercise.duration,
       description: exercise.description,
     });
@@ -92,17 +104,22 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 
 app.get('/api/users/:_id/logs', async (req, res) => {
   const { _id } = req.params;
+  const { from, to, limit } = req.query;
 
-  const user = await User.find({ _id });
+  const user = await User.findOne({ _id });
+
+  const filteredLogs = user.log
+    .filter((i) => filterLogs(from, to, i))
+    .slice(0, limit);
 
   res.send({
-    _id: user[0]._id,
-    username: user[0].username,
-    count: user[0].log.length,
-    log: user[0].log.map((i) => ({
+    _id: user._id,
+    username: user.username,
+    count: filteredLogs.length,
+    log: filteredLogs.map((i) => ({
       description: i.description,
       duration: i.duration,
-      date: formatDate(i.date).slice(0, 16),
+      date: formatDateToUTC(i.date),
     })),
   });
 });
