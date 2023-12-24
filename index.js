@@ -83,7 +83,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 
     const exercise = {
       description,
-      duration,
+      duration: Number(duration),
       date: date || Date.now(),
     };
 
