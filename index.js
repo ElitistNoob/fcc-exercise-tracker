@@ -16,7 +16,19 @@ app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const formatDateToUTC = (date) => new Date(date).toUTCString().slice(0, 16);
+// const formatDateToUTC = (date) => new Date(date).toUTCString().slice(0, 16);
+const formatDate = (i) => {
+  const date = new Date(i);
+
+  const options = {
+    weekday: 'short',
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  };
+
+  return date.toLocaleDateString('en-US', options).replace(/,/g, '');
+};
 
 const filterLogs = (from, to, log) => {
   const minDate = from ? new Date(from) : -Infinity;
@@ -93,12 +105,13 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     res.send({
       _id: user._id,
       username: user.username,
-      date: formatDateToUTC(exercise.date),
+      date: formatDate(exercise.date),
       duration: exercise.duration,
       description: exercise.description,
     });
   } catch (err) {
-    res.send({ error: 'invalid user Id' });
+    res.send({ error: 'Something went wrong' });
+    console.log(err.error);
   }
 });
 
@@ -119,7 +132,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
     log: filteredLogs.map((i) => ({
       description: i.description,
       duration: i.duration,
-      date: formatDateToUTC(i.date),
+      date: formatDate(i.date),
     })),
   });
 });
